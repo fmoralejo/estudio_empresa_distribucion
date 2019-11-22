@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1574398827110.000,
+    "dirty" : false,
+    "encoding" : "ISO8859-1",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "13099DE",
+    "lastKnownWriteTime" : 1574463754,
+    "last_content_update" : 1574463754359,
+    "path" : "~/Progra/estudio_empresa_distribucion/analisis.R",
+    "project_path" : "analisis.R",
+    "properties" : {
+        "cursorPosition" : "4,22",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

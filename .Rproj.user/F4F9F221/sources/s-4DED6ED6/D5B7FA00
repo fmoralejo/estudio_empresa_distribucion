@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1574397411551.000,
+    "dirty" : false,
+    "encoding" : "ISO8859-1",
+    "folds" : "",
+    "hash" : "132968306",
+    "id" : "D5B7FA00",
+    "lastKnownWriteTime" : 1574463776,
+    "last_content_update" : 1574463776884,
+    "path" : "~/Progra/estudio_empresa_distribucion/funciones.R",
+    "project_path" : "funciones.R",
+    "properties" : {
+        "cursorPosition" : "26,0",
+        "scrollLine" : "7",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : true,
+    "source_window" : "",
+    "type" : "r_source"
+}

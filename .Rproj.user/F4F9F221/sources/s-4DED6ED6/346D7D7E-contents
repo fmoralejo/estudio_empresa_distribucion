@@ -1,0 +1,188 @@
+# Primero, se debe instalar el paquete "arules" con todas sus
+# dependencias
+
+install.packages("arules",dep=TRUE)
+
+# una vez instalado, se procede a cargar la librería
+
+library(arules)
+
+# ubicarse en el directorio correcto
+
+setwd("c:/users/antonio/DataMining")
+
+# Los datos pueden estar estructurados de 2 formas diferentes,
+# ya sea en forma de canasta o en forma individual.  La forma
+# de cargar los datos es diferente a la que hemos usado hasta 
+# ahora, ya que lo que se genera es una estructura de transacciones
+# Estos archivos no tienen la estructura tradicional de casos/variables
+# sino que utilizan una estructura de matriz dispersa
+
+
+trans = read.transactions("Groceries.csv", format = "basket", sep = ",")
+
+# Estas lineas no las estaremos utilizando por el momento
+
+##  trans2 = read.transactions("75000-out1.csv", format = "basket", sep = ",")
+
+# Cuando los datos se encuentran en forma individual, se debe especificar
+# el nombre de las 2 columnas que contienen los datos de interes,
+# o sea, el número de transacción y el item
+
+##  trans3 = read.transactions("75000-out3.csv", format = "single", cols=c("trans","cod"), sep = ",")
+
+# veamos un resumen de la información que contienen las transacciones:
+
+summary(trans)
+
+# una medida importante es la densidad de la matriz.  Esto nos permite
+# calcular el número de items totales en el set de datos de la sig. forma:
+# 169 * 9835 * 0.02609146 = 43367 items totales en los datos, asumiendo
+# que ninguna transacción contiene items duplicados
+
+# También podemos ver la estructura de la data
+
+str(trans)
+
+# de esta estructura podemos extraer la lista de items de la sig. forma:
+
+trans@itemInfo
+
+# Podemos graficar la frecuencia (support) de cada item en forma
+# absoluta o relativa
+
+itemFrequencyPlot(trans,topN=20,type="absolute")
+
+itemFrequencyPlot(trans,topN=20,type="relative")
+
+# tambien se puede graficar solo los items que tengan una F.R. mayor
+# a cierto valor
+
+itemFrequencyPlot(trans, support = 0.1)
+
+# La frecuencia relativa es equivalente al "support" de cada item
+
+# si queremos ver cada transaccion en forma individual, debemos
+# utilizar la funcion inspect
+
+inspect(trans)
+
+# o si queremos alguna transaccion especifica, debemos usar las 
+# operaciones de vectores, indicando el rango que queremos inspeccionar
+
+inspect(trans[1:5])
+
+inspect(trans[c(1,10,100,500)])
+
+# tambien podemos ver la frecuencia relativa de cada item utilizando
+# la siguiente funcion
+
+itemFrequency(trans)
+
+# si son muchas, las podemos asignar a otra variable y luego
+# limitar solo las que nos interesan u ordenarlas en forma
+# ascendente o descendente
+
+frecrel <- itemFrequency(trans)
+
+sort(frecrel, decreasing = TRUE)[1:5]  # los 5 articulos con la F.R. mas alta
+
+
+# la siguiente es una grafica muy util que nos puede servir para
+# identificar articulos que se repiten constantemente. Aqui se ve
+# la dispersion de la matriz de transacciones/items
+
+image(trans[1:25])
+
+# podemos hacer un muestreo aleatorio y desplegar la grafica
+
+
+image(sample(trans,150))
+
+
+# Ahora procedemos a aplicar el algoritmo apriori para identificar
+# las reglas de asociacion
+
+
+reglas <- apriori(trans, parameter = list(supp = 0.1, conf = 0.8, minlen = 2))
+
+# si tratamos de visualizar las reglas de la siguiente forma
+
+reglas
+
+
+# vemos que el algoritmo no encontró ninguna regla que cumpliera con
+# las especificaciones mínimas (supp=0.1, conf=0.8 y minlen=2) por lo
+# que debemos ser menos restrictivos con los parametros para encontrar
+# otras reglas 
+
+reglas <- apriori(trans, parameter = list(supp = 0.005, conf = 0.25, minlen = 2))
+
+reglas
+
+# ahora ya tenemos 662 reglas que cumplen con los parámetros por
+# lo que procedemos a inspeccionarlas.  Veamos las primeras 5
+
+inspect(reglas[1:5])  
+
+# tomando la primera regla, puede interpretarse de la siguiente forma:
+# los productos cake bar y whole milk aparecen juntos en el 0.5% del total
+# de transacciones.  El 42% de las transacciones que contienen cake bar
+# también contienen whole milk y finalmente cuando un cliente compra un
+# cake bar, tiene un 65% mas de probabilidad de comprar leche entera
+
+
+# podemos ordenarlas respecto a cualquiera de los parametros
+
+
+reg2 <- sort(reglas, decreasing=TRUE,by="confidence")
+
+inspect(reg2[1:5])
+
+reg3 <- sort(reglas, decreasing=TRUE,by="support")
+
+inspect(reg3[1:5])
+
+reg4 <-sort(reglas, decreasing=TRUE,by="lift")
+
+inspect(reg4[1:5])
+
+
+#  podemos hacer un subset de las reglas que contienen algun producto
+#  especifico
+
+#  el operador %in% implica buscar las reglas donde aparezca cualquiera de los items indicados
+
+yogurt <- subset(reglas, items %in% "yogurt")
+
+inspect(yogurt[1:5])
+
+# el operador %ain% implica que deben estar presentes en la regla todos los items listados
+
+yogleche <- subset(reglas, items %ain% c("yogurt", "whole milk"))
+
+inspect((yogleche[1:5]))
+
+#podemos buscar un objetivo especifico en el lado derecho o en el lado izquierdo de la regla
+
+# lado izquierdo
+
+reglas2 <-apriori(trans, parameter=list(supp=0.001,conf = 0.08, minlen=2),appearance = list(default="lhs",rhs="whole milk"))
+
+reglas2<-sort(reglas2, decreasing=TRUE,by="confidence")
+
+inspect(reglas2[1:5])
+
+# lado derecho
+
+reglas3 <- apriori(trans, parameter=list(supp=0.001,conf = 0.15,minlen=2), appearance = list(default="rhs",lhs="whole milk"))
+
+reglas3<-sort(reglas3, decreasing=TRUE,by="confidence")
+
+inspect(reglas3[1:5])
+
+# finalmente, podemos convertir las reglas en un data frame de la sig. forma
+
+reglasdf <- as(reglas,"data.frame")
+
+

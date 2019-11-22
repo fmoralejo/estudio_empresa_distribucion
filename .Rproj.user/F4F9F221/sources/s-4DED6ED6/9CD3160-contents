@@ -1,0 +1,94 @@
+# Primero instalamos los paquetes que se requieren. Asegurarse que se tiene
+# una buena conexion a internet
+
+install.packages("rpart",dep=TRUE)
+install.packages("rpart.plot",dep=TRUE)
+
+
+# luego cargamos nuestro ya bien conocido set de datos de carros
+
+carros <- read.csv("cars.csv")
+
+# al igual que en el ejemplo anterior, vamos a definir nuestra variable
+# respuesta como binaria para los carros que son de US
+
+carros$US <- as.numeric(carros$brand=="US.")
+
+## calcular la línea base de predicción
+
+prop.table(table(carros$US))
+
+# luego cargamos las librerias que vamos a utilizar
+
+library(caTools)
+library(rpart)
+library(rpart.plot)
+
+# Ahora hacemos la particion del set de datos para entrenamiento y validacion
+
+set.seed(123)
+split <- sample.split(carros$US, SplitRatio=0.7)
+carrosTrain <- carros[split==TRUE,]
+carrosTest <- carros[split==FALSE,]
+
+
+# Ahora procedemos a crear el modelo, utilizando la funcion rpart.  Los parametros
+# son muy similares a lo que hemos usado hasta ahora.
+
+arbol1 <- rpart(US ~ mpg+cylinders+weightlbs+hp,data=carrosTrain,method="class")
+
+# Esta funcion nos permite graficar el arbol de clasificacion
+
+prp(arbol1)
+
+# como se ve en la grafica, el algoritmo esta asumiendo que la variable
+# cylinders puede ser fraccionada, lo cual no es posible, por lo que debemos
+# indicarle que en lugar de ser un numero, es un factor:
+
+carrosTrain$cyl <- as.factor(carrosTrain$cylinders)
+carrosTest$cyl <- as.factor(carrosTest$cylinders)
+
+# ahora volvemos a calcular el modelo
+
+arbol2 <- rpart(US ~ mpg+cyl+weightlbs+hp,data=carrosTrain,method="class")
+
+# lo graficamos nuevamente
+
+prp(arbol2)
+
+# Ahora se ve que el arbol esta clasificando los cilindros correctamente
+
+# Ahora se puede hacer predicciones sobre los datos de validacion
+
+predictUS <- predict(arbol2, newdata=carrosTest,type="class")
+
+# construimos la matriz de confusion
+
+confumat <- table(carrosTest$US,predictUS)
+
+# y calculamos la precision del modelo
+
+sum(diag(confumat))/sum(confumat)
+
+
+# ahora veamos algo que los arboles pueden hacer y que la regresion lineal o
+# logistica no puede.  Clasificar los datos en mas de 2 categorias:
+
+# primero creamos el modelo para predecir el origen de los vehiculos utilizando
+# las variables mas importantes
+
+arbol3 <- rpart(brand ~ mpg+cyl+weightlbs+hp,data=carrosTrain,method="class")
+
+# ahora veamos como se ve el arbol de clasificacion
+
+prp(arbol3)
+
+# ahora hagamos predicciones sobre los datos de validacion:
+
+predictbrand <- predict(arbol3,newdata=carrosTest,type="class")
+
+# finalmente calculamos la matriz de confusion y la precision del modelo
+
+confumat2 <- table(carrosTest$brand,predictbrand)
+sum(diag(confumat2))/sum(confumat2)
+

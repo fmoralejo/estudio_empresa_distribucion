@@ -1,0 +1,96 @@
+library(openxlsx)
+library(xlsx)
+
+
+lectura_Excel = function(file_path, primera_fila)
+{
+  wb <- loadWorkbook(file_path)
+  sheet_names <- getSheets(wb)
+  print(sheet_names)
+  hojas_a_leer <- seq(1:length(sheet_names))
+  lista_data <- list()
+  
+  for (i in hojas_a_leer) 
+    {
+    data <- readWorkbook(xlsxFile = file_path, sheet = i, startRow = primera_fila, colNames = TRUE, skipEmptyRows = TRUE)
+    lista_data[[i]] <- data
+    names(lista_data[i])<-sheet_names[i]
+    print(lista_data[[i]])
+  }
+  names(lista_data)<- names(sheet_names)
+  return(lista_data)
+}
+
+
+summary_stats <- function(lista_datos)
+{
+  lista_summary<- list()
+  largo_lista <- length(lista_datos)
+  itarador <- seq(1:largo_lista)
+  
+  for (i in itarador) {
+    stats <- summary(lista_datos[[i]])
+    lista_summary[[i]] <- stats
+    print(lista_summary[[i]])
+    
+  }
+  names(lista_summary) <- names(lista_datos)
+  return(lista_summary)
+}
+  
+
+limpieza_dataframes = function(lista_data)
+{
+  lista_limpia <- list()
+  nombres <- names(lista_data)
+  largo <- seq(1:length(lista_data))
+  for (i in largo) {
+    df <- lista_data[[i]]
+    df <- df[!is.na(df$NOMBRE),]
+    lista_limpia[[i]] <- df
+  }
+  names(lista_limpia) <- names(lista_data)
+  return(lista_limpia)
+}
+
+histogramas_aportaciones = function(lista_dfs, año)
+{
+  lista_hist <- list ()
+  nombres <- names(lista_dfs)
+  largo <- seq(1:length(lista_dfs))
+  for (i in largo) {
+    data <- lista_dfs[[i]]
+    data_for_plot <- as.numeric(data[,2])
+    histo <- hist(data_for_plot, 
+                  col = "cyan", 
+                  ylab = "Cant. Donaciones" ,
+                  xlab = "Monto de Aportacion",
+                  main = paste("Histograma de Aportaciones", 
+                               names(lista_dfs[i]),as.character(año)))
+    abline(v=mean(data_for_plot), 
+           col="red", 
+           lwd = 3)
+    abline(v=max(data_for_plot),
+           col="green",
+           lwd=1)
+    abline(v=median(data_for_plot),
+           col="blue",
+           lwd=1)
+    lista_hist[[i]] <- histo
+  }
+  names(lista_hist) <- names(lista_dfs)
+  
+  return(lista_hist)
+}
+
+extraccion_medias_aportaciones = function(lista_dfs)
+{
+  big_list <- list()
+  largo <- seq(1:length(lista_dfs))
+  for (i in largo){
+    lista <- list(names(lista_dfs[i]),mean(lista_dfs[[i]][,2]))
+    big_list[[i]] <- lista
+  }
+
+  return(big_list)
+}
